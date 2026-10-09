@@ -1,0 +1,2 @@
+pywebview>=6,<7
+pyinstaller>=6,<7

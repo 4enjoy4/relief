@@ -1,0 +1,16 @@
+[package]
+name = "fauxcode"
+version = "1.0.0"
+description = "A very convincing way to relax"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

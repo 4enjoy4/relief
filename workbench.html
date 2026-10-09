@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Visual Studio Code</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23007acc'/%3E%3Ctext x='8' y='12' font-size='9' text-anchor='middle' fill='white' font-family='monospace'%3E%7B%7D%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #1e1e1e;         --side: #252526;      --activity: #333333;
+    --title: #3c3c3c;      --tabbar: #252526;    --tab: #2d2d2d;
+    --border: #3c3c3c;     --text: #cccccc;      --bright: #ffffff;
+    --dim: #6e6e6e;        --ln: #858585;        --hover: #2a2d2e;
+    --sel: #37373d;        --status: #007acc;    --status-text: #ffffff;
+    --input: #3c3c3c;      --accent: #007acc;    --caret: #aeafad;
+    --kw: #569cd6;  --str: #ce9178;  --com: #6a9955;  --num: #b5cea8;
+    --fn: #dcdcaa;  --dec: #4ec9b0;  --key: #9cdcfe;
+    --map-ghost: #2b2f38;  --map-on: #4a5468;  --map-c: #39503a;  --map-cur: #8a91a0;
+  }
+  body.theme-darcula {
+    --bg: #2b2b2b;         --side: #3c3f41;      --activity: #313335;
+    --title: #3c3f41;      --tabbar: #3c3f41;    --tab: #46494b;
+    --border: #555555;     --text: #a9b7c6;      --bright: #ffffff;
+    --dim: #808080;        --ln: #606366;        --hover: #46494b;
+    --sel: #4e5254;        --status: #3c3f41;    --status-text: #bbbbbb;
+    --input: #45494a;      --accent: #4b6eaf;    --caret: #bbbbbb;
+    --kw: #cc7832;  --str: #6a8759;  --com: #808080;  --num: #6897bb;
+    --fn: #ffc66b;  --dec: #bbb529;  --key: #9876aa;
+    --map-ghost: #37393b;  --map-on: #5c6164;  --map-c: #46523f;  --map-cur: #9da2a6;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; overflow:hidden; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif; font-size:13px;
+    background:var(--bg); color:var(--text); display:flex; flex-direction:column;
+    user-select:none; cursor:default;
+  }
+  .hidden { display:none !important; }
+  button { font-family:inherit; }
+
+  #titlebar { height:30px; background:var(--title); display:flex; align-items:center; font-size:12px; flex:none; }
+  #titlebar .menu { display:flex; }
+  #titlebar .menu span { padding:0 8px; line-height:30px; }
+  #titlebar .menu span:hover { background:#50505088; }
+  #titlebar .title { flex:1; text-align:center; color:var(--text); opacity:.85; white-space:nowrap; overflow:hidden; }
+  #titlebar .winbtns { display:flex; }
+  #titlebar .winbtns div { width:46px; text-align:center; line-height:30px; }
+  #titlebar .winbtns div:hover { background:#50505088; }
+  #titlebar .winbtns .close:hover { background:#e81123; color:#fff; }
+  /* The desktop build uses the normal Windows frame so it can be resized.
+     Keep the in-page buttons for browser previews, but do not show a second
+     set beside the native controls. */
+  body.desktop-shell #titlebar .winbtns { display:none; }
+
+  #main { flex:1; display:flex; min-height:0; }
+  #activitybar { width:48px; background:var(--activity); flex:none; display:flex; flex-direction:column; align-items:center; padding-top:6px; }
+  #activitybar .aicon { width:48px; height:44px; display:flex; align-items:center; justify-content:center; font-size:21px; color:#858585; position:relative; }
+  #activitybar .aicon.active { color:var(--bright); border-left:2px solid var(--bright); }
+  #activitybar .aicon:hover { color:var(--bright); }
+  #activitybar .spacer { flex:1; }
+  .abadge {
+    position:absolute; right:6px; bottom:5px; min-width:15px; height:15px;
+    border-radius:8px; background:var(--accent); color:#fff; font-size:9px;
+    line-height:15px; text-align:center; padding:0 3px; font-family:"Segoe UI";
+  }
+
+  #sidebar { width:250px; background:var(--side); flex:none; overflow-y:auto; font-size:13px; padding-bottom:20px; }
+  #sidebar::-webkit-scrollbar { width:10px; }
+  #sidebar::-webkit-scrollbar-thumb { background:rgba(121,121,121,0.4); }
+  #sidebar .sbtitle { font-size:11px; color:var(--text); opacity:.8; padding:8px 16px 6px 16px; letter-spacing:0.6px; }
+  #sidebar .proj { font-weight:bold; font-size:11px; padding:4px 8px; letter-spacing:0.4px; }
+  .tree { line-height:22px; }
+  .tree .item { white-space:nowrap; color:var(--text); }
+  .tree .item:hover { background:var(--hover); }
+  .tree .item.active { background:var(--sel); }
+  .tree .arrow { display:inline-block; width:12px; font-size:10px; }
+  .fico { display:inline-block; width:18px; text-align:center; margin-right:5px; font-size:9px; font-weight:bold; font-family:Consolas,monospace; }
+  .fico.ts,.fico.tsx { color:#519aba; } .fico.py { color:#ffcb3d; }
+  .fico.yml { color:#a074c4; } .fico.json { color:#cbcb41; }
+  .fico.md { color:#519aba; } .fico.env { color:#8bc34a; }
+  .fico.sql { color:#e38c29; } .fico.frag { color:#c586c0; } .fico.txt { color:#9a9a9a; }
+
+  /* ---- search view ---- */
+  .searchbox { padding:4px 12px 8px 12px; }
+  .searchbox input, #commitmsg {
+    width:100%; background:var(--input); border:1px solid transparent; color:var(--text);
+    font-size:13px; padding:5px 8px; outline:none; font-family:inherit;
+  }
+  .searchbox input:focus, #commitmsg:focus { border-color:var(--accent); }
+  .ssum { padding:0 14px 6px 14px; color:var(--dim); font-size:12px; }
+  .sfile { padding:3px 12px; color:var(--text); font-weight:600; }
+  .sfile:hover { background:var(--hover); }
+  .sfile .scount { float:right; background:var(--input); border-radius:8px; padding:0 7px; font-size:11px; font-weight:400; color:var(--dim); }
+  .srow { padding:2px 12px 2px 30px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text); opacity:.9; font-size:12.5px; }
+  .srow:hover { background:var(--hover); }
+  .srow mark { background:#613214; color:inherit; border-radius:2px; }
+  body.theme-darcula .srow mark { background:#32593d; }
+  .srow .sln { color:var(--dim); margin-right:6px; font-family:Consolas,monospace; font-size:11px; }
+
+  /* ---- source control view ---- */
+  .scmbox { padding:4px 12px 6px 12px; }
+  #commitmsg { resize:none; height:52px; font-size:12.5px; }
+  .scmbtns { display:flex; gap:6px; margin-top:6px; }
+  .scmbtns button {
+    flex:1; background:var(--accent); border:none; color:#fff; padding:5px 0;
+    font-size:12.5px; cursor:default;
+  }
+  .scmbtns button:hover { filter:brightness(1.15); }
+  .scmhead { padding:8px 14px 4px 14px; font-size:11px; color:var(--text); opacity:.8; letter-spacing:.4px; }
+  .scmhead .badge { background:var(--input); border-radius:8px; padding:0 7px; font-size:11px; margin-left:6px; color:var(--dim); }
+  .scmrow { padding:3px 12px 3px 22px; white-space:nowrap; }
+  .scmrow:hover { background:var(--hover); }
+  .scmrow .mbadge { float:right; color:#e2c08d; font-weight:bold; padding-right:4px; }
+  .scmempty { padding:8px 22px; color:var(--dim); font-size:12px; }
+
+  /* ---- debug view ---- */
+  .dbgbar { display:flex; align-items:center; gap:8px; padding:4px 12px 8px 12px; }
+  #dbgstart { background:none; border:none; color:#4ec96f; font-size:16px; cursor:default; }
+  #dbgstart:hover { filter:brightness(1.3); }
+  #dbgconf { color:var(--text); font-size:12.5px; opacity:.9; }
+  .dbghead { padding:7px 14px 3px 14px; font-size:11px; color:var(--text); opacity:.8; letter-spacing:.4px; }
+  .dbgpanel { font-family:Consolas,monospace; font-size:12px; padding:0 0 4px 0; }
+  .dbgrow { padding:1px 12px 1px 24px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dbgrow:hover { background:var(--hover); }
+  .dbgrow .dname { color:var(--key); }
+  .dbgrow .dval { color:var(--str); }
+  .dbgrow.paused { color:#e5c07b; }
+  .dbgempty { padding:2px 24px; color:var(--dim); font-size:12px; font-family:"Segoe UI"; }
+
+  /* ---- extensions view ---- */
+  .extrow { display:flex; gap:9px; padding:7px 12px; }
+  .extrow:hover { background:var(--hover); }
+  .exticon {
+    width:36px; height:36px; flex:none; border-radius:4px; display:flex;
+    align-items:center; justify-content:center; font-weight:bold; color:#fff; font-size:15px;
+  }
+  .extmeta { flex:1; min-width:0; }
+  .extname { color:var(--text); font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .extdesc { color:var(--dim); font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .extfoot { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--dim); margin-top:2px; }
+  .extbtn { background:var(--accent); color:#fff; border:none; font-size:11px; padding:1px 8px; }
+  .extbtn.inst { background:var(--input); color:var(--dim); }
+
+  /* ---- editor ---- */
+  #editorcol { flex:1; display:flex; flex-direction:column; min-width:0; }
+  #tabs { height:35px; background:var(--tabbar); display:flex; flex:none; overflow:hidden; }
+  .tab { display:flex; align-items:center; padding:0 10px; background:var(--tab); border-right:1px solid var(--tabbar); color:var(--text); opacity:.75; font-size:13px; white-space:nowrap; }
+  .tab.active { background:var(--bg); color:var(--bright); opacity:1; }
+  .tab .fico { font-size:9px; }
+  .tab .dot { margin-left:8px; font-size:16px; line-height:10px; visibility:hidden; }
+  .tab.dirty .dot { visibility:visible; }
+
+  #breadcrumbs { height:22px; line-height:22px; padding-left:16px; font-size:12px; color:var(--text); opacity:.7; flex:none; white-space:nowrap; overflow:hidden; }
+  #breadcrumbs .sep { margin:0 4px; opacity:.6; }
+
+  #editorwrap { flex:1; display:flex; min-height:0; position:relative; }
+  #codewrap { flex:1; overflow-y:auto; overflow-x:hidden; padding:4px 0 45vh 0; font-family:Consolas,"Cascadia Code",monospace; font-size:14px; line-height:19px; }
+  #codewrap::-webkit-scrollbar { width:14px; }
+  #codewrap::-webkit-scrollbar-thumb { background:rgba(121,121,121,0.4); }
+  .line { display:flex; white-space:pre; }
+  .line .ln { width:52px; flex:none; text-align:right; padding-right:22px; color:var(--ln); position:relative; }
+  .line .ln.bp::before { content:'●'; position:absolute; left:8px; color:#e51400; font-size:11px; }
+  .line .lc { flex:1; }
+  .line.cursorline { background:rgba(255,255,255,0.045); outline:1px solid rgba(255,255,255,0.06); }
+  .line.miss { animation:mistake .18s linear 2; }
+  .line.searchhit { background:rgba(97,175,239,0.18); transition:background 1s ease; }
+  .caret { display:inline-block; width:2px; height:16px; background:var(--caret); vertical-align:text-bottom; animation:blink 1s steps(1) infinite; }
+  .ghost { opacity:.23; filter:saturate(.72); }
+  @keyframes mistake { 25% { transform:translateX(-2px); } 75% { transform:translateX(2px); } }
+  @keyframes blink { 50% { opacity:0; } }
+  #codewrap.static #curline { display:none; }
+
+  .kw { color:var(--kw); } .str { color:var(--str); } .com { color:var(--com); }
+  .num { color:var(--num); } .fn { color:var(--fn); } .dec { color:var(--dec); }
+  .key { color:var(--key); }
+
+  .squig { text-decoration:underline; text-decoration-style:wavy; text-decoration-color:#f48771; text-decoration-skip-ink:none; }
+  .fixflash { background:rgba(78,201,111,0.3); border-radius:2px; transition:background .6s ease; }
+
+  #minimap { width:96px; flex:none; border-left:1px solid #2a2a2a55; padding:8px 12px; overflow:hidden; }
+  .mbar { height:2px; margin-bottom:2px; border-radius:1px; background:var(--map-ghost); }
+  .mbar.on { background:var(--map-on); }
+  .mbar.on.c { background:var(--map-c); }
+  .mbar.cur { background:var(--map-cur); box-shadow:0 0 3px rgba(255,255,255,0.35); }
+
+  #panel { height:230px; flex:none; border-top:1px solid var(--border); display:flex; flex-direction:column; min-height:0; }
+  #paneltabs { height:34px; flex:none; display:flex; align-items:center; padding:0 12px; font-size:11px; color:var(--text); letter-spacing:0.4px; }
+  #paneltabs span.ptab { margin-right:16px; padding:6px 0; opacity:.7; }
+  #paneltabs span.ptab.on { opacity:1; color:var(--bright); border-bottom:1px solid var(--bright); }
+  #paneltabs .right { margin-left:auto; font-size:12px; }
+  #term { flex:1; overflow-y:auto; padding:2px 12px 10px 12px; font-family:Consolas,"Cascadia Code",monospace; font-size:13px; line-height:18px; }
+  #term::-webkit-scrollbar { width:14px; }
+  #term::-webkit-scrollbar-thumb { background:rgba(121,121,121,0.4); }
+  .tl { white-space:pre-wrap; color:var(--text); }
+  .tl .dim { color:var(--dim); } .tl .ok { color:#4ec96f; } .tl .warn { color:#e5c07b; }
+  .tl .err { color:#f48771; } .tl .info { color:#61afef; } .tl .mag { color:#c678dd; }
+  #termform { display:flex; align-items:center; flex:none; min-height:27px; padding:2px 12px 7px; font:13px/18px Consolas,"Cascadia Code",monospace; }
+  #termprompt { color:#c678dd; white-space:pre; }
+  #terminput { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; caret-color:var(--caret); padding:0 0 0 7px; }
+  #termbusy { color:var(--dim); font-size:11px; margin-left:8px; }
+  .panelview { flex:1; overflow:auto; padding:5px 12px 10px; font-family:Consolas,"Cascadia Code",monospace; font-size:12px; line-height:19px; }
+  .panelview .pheading { color:var(--bright); margin:4px 0 6px; }
+  .panelview .prow { color:var(--text); white-space:pre-wrap; }
+  .panelview .pdim { color:var(--dim); }
+  .panelview .pok { color:#4ec96f; }
+  .panelview .pwarn { color:#e5c07b; }
+  .panelview .perr { color:#f48771; }
+
+  #statusbar { height:22px; background:var(--status); color:var(--status-text); flex:none; display:flex; align-items:center; font-size:12px; padding:0 10px; }
+  #statusbar .item { padding:0 7px; white-space:nowrap; }
+  #statusbar .item:hover { background:rgba(255,255,255,0.12); }
+  #statusbar .left { display:flex; } #statusbar .right { display:flex; margin-left:auto; }
+  #autodot { display:none; } #branch.auto #autodot { display:inline; }
+  #typingstats, #focusrank { opacity:.58; font-size:11px; letter-spacing:.1px; }
+  #typingstats:hover, #focusrank:hover { opacity:1; }
+
+  #menupopup { position:fixed; z-index:40; display:none; min-width:208px; padding:4px 0; background:var(--side); border:1px solid #555; box-shadow:0 5px 18px rgba(0,0,0,.45); font-size:12px; }
+  #menupopup.show { display:block; }
+  #menupopup button { width:100%; border:0; background:transparent; color:var(--text); padding:6px 14px; text-align:left; font-size:12px; }
+  #menupopup button:hover { background:var(--accent); color:#fff; }
+  #menupopup .msep { height:1px; background:var(--border); margin:4px 0; }
+
+  @media (max-width:1050px) {
+    #sidebar { width:215px; }
+    #minimap { display:none; }
+    #titlebar .menu span:nth-child(n+6) { display:none; }
+  }
+  @media (max-width:780px) {
+    #sidebar { width:185px; }
+    #panel { height:190px; }
+    #titlebar .menu span:nth-child(n+4) { display:none; }
+    #statusbar .item:nth-child(n+5) { display:none; }
+  }
+
+  #toast { position:fixed; right:20px; bottom:42px; width:340px; background:var(--side); border:1px solid #45454588; color:var(--text); padding:12px 14px; font-size:12px; box-shadow:0 4px 12px rgba(0,0,0,0.5); opacity:0; transform:translateY(12px); transition:all .3s ease; pointer-events:none; z-index:20; }
+  #toast.show { opacity:1; transform:translateY(0); }
+  #toast .tsrc { color:var(--dim); margin-top:6px; font-size:11px; }
+
+  /* ---- welcome / profile picker ---- */
+  #welcome { position:absolute; inset:0; background:var(--bg); z-index:5; display:none; overflow-y:auto; padding:44px 56px; }
+  #welcome.show { display:block; }
+  #welcome .wtitle { font-size:26px; font-weight:300; color:var(--bright); }
+  #welcome .wsub { color:var(--dim); margin:8px 0 24px 0; max-width:640px; line-height:1.5; }
+  .wcards { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; max-width:860px; }
+  .wcard { background:var(--side); border:1px solid var(--border); border-radius:4px; padding:16px; }
+  .wcard:hover { border-color:var(--accent); background:var(--hover); }
+  .wcard.sel { border-color:var(--accent); }
+  .wcard .wname { color:var(--bright); font-size:14px; margin-bottom:6px; }
+  .wcard .wstack { color:#75beff; font-size:11px; font-family:Consolas,monospace; margin-bottom:8px; }
+  .wcard .wdesc { color:var(--dim); font-size:12px; line-height:1.45; }
+  #welcome .wsubhead { color:var(--bright); font-size:15px; margin:28px 0 10px 0; font-weight:400; }
+  .wthemes { display:flex; gap:12px; }
+  .wtheme { background:var(--side); border:1px solid var(--border); border-radius:4px; padding:10px 22px; color:var(--text); font-size:13px; }
+  .wtheme:hover { border-color:var(--accent); }
+  .wtheme.sel { border-color:var(--accent); color:var(--bright); }
+  #welcome .wfoot { color:var(--dim); font-size:11px; margin-top:26px; }
+</style>
+<link rel="stylesheet" href="app/workbench.css">
+</head>
+<body>
+
+<div id="titlebar">
+  <div class="menu"><span data-menu="file">File</span><span data-menu="edit">Edit</span><span data-menu="selection">Selection</span><span data-menu="view">View</span><span data-menu="go">Go</span><span data-menu="run">Run</span><span data-menu="terminal">Terminal</span><span data-menu="help">Help</span></div>
+  <div class="title" id="wintitle">Visual Studio Code</div>
+  <div class="winbtns"><div>─</div><div>▢</div><div class="close">✕</div></div>
+</div>
+
+<div id="main">
+  <div id="activitybar">
+    <div class="aicon active" data-view="explorer" title="Explorer">▤</div>
+    <div class="aicon" data-view="search" title="Search">⌕</div>
+    <div class="aicon" data-view="scm" title="Source Control">⑂<span class="abadge hidden" id="scmbadge"></span></div>
+    <div class="aicon" data-view="debug" title="Run and Debug">▷</div>
+    <div class="aicon" data-view="ext" title="Extensions">⊞</div>
+    <div class="spacer"></div>
+    <div class="aicon" title="Accounts">◔</div>
+    <div class="aicon" id="gear" title="Manage">⚙</div>
+  </div>
+
+  <div id="sidebar">
+    <div class="sbview" id="view-explorer">
+      <div class="sbtitle">EXPLORER</div>
+      <div class="proj" id="projname">▾ PROJECT</div>
+      <div class="tree" id="tree"></div>
+    </div>
+
+    <div class="sbview hidden" id="view-search">
+      <div class="sbtitle">SEARCH</div>
+      <div class="searchbox"><input id="searchinput" placeholder="Search" spellcheck="false" autocomplete="off"></div>
+      <div id="searchsummary" class="ssum"></div>
+      <div id="searchresults"></div>
+    </div>
+
+    <div class="sbview hidden" id="view-scm">
+      <div class="sbtitle">SOURCE CONTROL</div>
+      <div class="scmbox">
+        <textarea id="commitmsg" placeholder="Message (Ctrl+Enter to commit)" spellcheck="false"></textarea>
+        <div class="scmbtns">
+          <button id="commitbtn">✓ Commit</button>
+          <button id="syncbtn" class="hidden">⇅ Sync <span id="synccount"></span></button>
+        </div>
+      </div>
+      <div class="scmhead">CHANGES <span class="badge" id="scmcount">0</span></div>
+      <div id="scmlist"></div>
+    </div>
+
+    <div class="sbview hidden" id="view-debug">
+      <div class="sbtitle">RUN AND DEBUG</div>
+      <div class="dbgbar"><button id="dbgstart" title="Start Debugging">▶</button><span id="dbgconf"></span></div>
+      <div class="dbghead">VARIABLES</div><div id="dbgvars" class="dbgpanel"></div>
+      <div class="dbghead">WATCH</div><div id="dbgwatch" class="dbgpanel"></div>
+      <div class="dbghead">CALL STACK</div><div id="dbgstack" class="dbgpanel"></div>
+      <div class="dbghead">BREAKPOINTS</div><div id="dbgbps" class="dbgpanel"></div>
+    </div>
+
+    <div class="sbview hidden" id="view-ext">
+      <div class="sbtitle">EXTENSIONS</div>
+      <div class="searchbox"><input id="extsearch" placeholder="Search Extensions in Marketplace" spellcheck="false" autocomplete="off"></div>
+      <div id="extlist"></div>
+    </div>
+  </div>
+
+  <div id="editorcol">
+    <div id="tabs"></div>
+    <div id="breadcrumbs"></div>
+    <div id="editorwrap">
+      <div id="codewrap">
+        <div id="done"></div>
+        <div class="line" id="curline">
+          <span class="ln" id="curln">1</span><span class="lc"><span id="curlc"></span><span class="caret"></span></span>
+        </div>
+      </div>
+      <div id="minimap"></div>
+      <div id="welcome">
+        <div class="wtitle">Customize your workspace</div>
+        <div class="wsub">Choose a project profile. The profile defines your codebase, language stack, file tree and what the build terminal talks about. You can switch anytime with the <b>⚙</b> icon in the corner — your choice is remembered.</div>
+        <div class="wcards" id="wcards"></div>
+        <div class="wsubhead">Color theme</div>
+        <div class="wthemes" id="wthemes">
+          <div class="wtheme" data-theme="dark">Dark+ (default)</div>
+          <div class="wtheme" data-theme="darcula">Darcula</div>
+        </div>
+        <div class="wfoot">Profiles are stored locally. Nothing leaves this window.</div>
+      </div>
+    </div>
+    <div id="panel">
+      <div id="paneltabs">
+        <span class="ptab">PROBLEMS</span><span class="ptab">OUTPUT</span><span class="ptab">DEBUG CONSOLE</span><span class="ptab on">TERMINAL</span><span class="ptab">PORTS</span>
+        <span class="right" id="termlabel">node ▾ ＋ 🗑</span>
+      </div>
+      <div id="term" class="panelview"></div>
+      <form id="termform" autocomplete="off">
+        <span id="termprompt">$</span><input id="terminput" aria-label="Terminal command" spellcheck="false" autocomplete="off" />
+        <span id="termbusy" class="hidden">running…</span>
+      </form>
+      <div id="problemsview" class="panelview hidden"></div>
+      <div id="outputview" class="panelview hidden"></div>
+      <div id="debugconsoleview" class="panelview hidden"></div>
+      <div id="portsview" class="panelview hidden"></div>
+    </div>
+  </div>
+</div>
+
+<div id="statusbar">
+  <div class="left">
+    <div class="item" id="focusrank" title="Language service status">Ln service</div>
+    <div class="item" id="branch" title="Checkout branch"></div>
+    <div class="item">⟳</div>
+    <div class="item"><span id="errcount">ⓧ 0</span> ⚠ 2</div>
+    <div class="item" id="bugs" title="DevMetrics — issues resolved today">⚡ 0</div>
+  </div>
+  <div class="right">
+    <div class="item" id="lncol">Ln 1, Col 1</div>
+    <div class="item" id="spaces" title="Select Indentation">Spaces: 2</div>
+    <div class="item">UTF-8</div><div class="item">LF</div>
+    <div class="item" id="langmode">Plain Text</div>
+    <div class="item">✓ Prettier</div>
+    <div class="item" id="typingstats" title="Editor activity">~ 00:00 · — wpm</div>
+    <div class="item" id="clock"></div>
+  </div>
+</div>
+
+<div id="menupopup" role="menu"></div>
+<div id="toast"><div id="toastmsg"></div><div class="tsrc" id="toastsrc"></div></div>
+
+<script src="app/generators.js"></script>
+<script src="app/engine.js"></script>
+<script src="app/profiles.js"></script>
+<script src="app/corpus/gamedev.js"></script>
+<script src="app/corpus/enterprise.js"></script>
+<script src="app/corpus/dataeng.js"></script>
+<script src="app/corpus/mobile.js"></script>
+<script src="app/catalogue.js"></script>
+<script src="app/workbench.js"></script>
+<script src="app/shell.js"></script>
+<script src="app/chrome.js"></script>
+<script src="app/boot.js"></script>
+</body>
+</html>
